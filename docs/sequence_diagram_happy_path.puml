@@ -1,0 +1,39 @@
+@startuml
+' ===========================
+' Sequence Diagram
+' ===========================
+
+autonumber
+actor User as user
+participant "Web Frontend\n(Web Application)" as frontend
+participant "Backend API" as api
+participant "Auth Module" as auth
+participant "Recommendation Engine" as rec
+database "Relational Database" as db
+
+title Get Personalized Recommendations (Happy Path)\nCineMovie
+
+' ===========================
+' Interaction flow
+' ===========================
+
+user -> frontend : opens recommendations section
+frontend -> api : request recommendations\n(for authenticated user)
+
+api -> auth : validate user identity\nand role
+auth --> api : user authenticated\n(role: USER)
+
+api -> db : fetch user interactions\n(ratings, favorites)
+db --> api : interaction data
+
+api -> rec : generate recommendations\n(user context)
+
+rec -> db : read movies data\n+ aggregates
+db --> rec : movie metadata
+
+rec --> api : ranked list of movies
+
+api --> frontend : recommendations data
+frontend --> user : displays personalized list
+
+@enduml

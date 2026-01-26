@@ -1,0 +1,48 @@
+@startuml
+' ===========================
+' Domain Diagram (High-level)
+' ===========================
+
+left to right direction
+skinparam shadowing false
+skinparam rectangle {
+  BackgroundColor #FDFDFD
+  BorderColor #333333
+}
+
+title Domain Diagram\nCineMovie
+
+' ===========================
+' Domain Entities
+' ===========================
+
+rectangle "User\n\n- account\n- role (USER / ADMIN)\n- preferences" as User
+
+rectangle "Movie\n\n- title\n- genre\n- director\n- metadata" as Movie
+
+rectangle "Rating\n\n- score\n- createdAt" as Rating
+
+rectangle "Review\n\n- text\n- createdAt" as Review
+
+rectangle "Favorite\n\n- markedAt" as Favorite
+
+rectangle "Complaint\n(optional)\n\n- reason\n- status" as Complaint
+
+' ===========================
+' Relationships
+' ===========================
+
+User "1" --> "0..*" Rating : gives
+Movie "1" <-- "0..*" Rating : receives
+
+User "1" --> "0..*" Review : writes
+Movie "1" <-- "0..*" Review : has
+
+User "1" --> "0..*" Favorite : marks
+Movie "1" <-- "0..*" Favorite : is marked
+
+User "1" --> "0..*" Complaint : submits
+Complaint --> Review : may reference
+Complaint --> Movie : may reference
+
+@enduml

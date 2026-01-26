@@ -1,0 +1,39 @@
+@startuml
+' ===========================
+' C4 – Level 1: System Context Diagram
+' ===========================
+
+left to right direction
+skinparam shadowing false
+skinparam rectangle {
+  BackgroundColor #FDFDFD
+  BorderColor #333333
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+
+title Context Diagram\nCineMovie
+
+' ===========================
+' Actors
+' ===========================
+
+actor "User\n(Movie Viewer)" as user
+actor "Administrator\n(Content Moderator)" as admin
+
+' ===========================
+' System under design
+' ===========================
+
+rectangle "Movie Recommendation Web Application\n\nProvides:\n- movie catalog browsing\n- ratings & reviews\n- favorites\n- personalized recommendations" as system
+
+' ===========================
+' Relationships
+' ===========================
+
+user --> system : browses movies\nrates, reviews\ngets recommendations
+admin --> system : manages movie catalog\nmoderates content
+
+@enduml

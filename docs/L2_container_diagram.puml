@@ -1,0 +1,44 @@
+@startuml
+' ===========================
+' C4 – Level 2: Container Diagram
+' ===========================
+
+left to right direction
+skinparam shadowing false
+skinparam rectangle {
+  BackgroundColor #FDFDFD
+  BorderColor #333333
+}
+skinparam database {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+skinparam actor {
+  BackgroundColor #FFFFFF
+  BorderColor #333333
+}
+
+title Container Diagram\nCineMovie
+
+actor "User\n(Movie Viewer)" as user
+actor "Administrator\n(Content Moderator)" as admin
+
+package "Movie Recommendation Web Application" {
+
+  rectangle "Web Frontend\n(Web Application)\n\nResponsibilities:\n- UI rendering (multiple pages/views)\n- registration & login\n- catalog & movie details\n- profile & favorites\n- admin panel (for admins)\n\nRuns in: Browser" as frontend
+
+  rectangle "Backend API\n(Application Server)\n\nResponsibilities:\n- business logic\n- authentication & authorization\n- recommendation generation\n- data validation\n\nProtocol: REST / JSON" as backend
+
+  database "Relational Database\n\nStores:\n- users\n- movies\n- ratings\n- reviews\n- favorites\n\nType: SQL DB" as db
+}
+
+user --> frontend : uses via browser
+admin --> frontend : manages content
+
+frontend --> backend : HTTP requests\n(JSON over REST)
+backend --> frontend : responses\n(recommendations, data)
+
+backend --> db : read/write data
+db --> backend : persisted entities
+
+@enduml

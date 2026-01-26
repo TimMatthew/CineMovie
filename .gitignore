@@ -1,0 +1,8 @@
+# IDE
+.idea/
+
+# Build artifacts
+target/
+
+# Environment variables
+.env

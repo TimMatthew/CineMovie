@@ -1,0 +1,140 @@
+@startuml
+' ===========================
+' C4 - Level 4: Component Diagram
+' ===========================
+
+' --- Layout / style ---
+left to right direction
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam defaultTextAlignment left
+skinparam wrapWidth 240
+skinparam maxMessageSize 200
+
+title Architecture Diagram
+
+' ===========================
+' External actors / systems
+' ===========================
+actor "User\n(Registered / Guest)" as user
+actor "Administrator" as admin
+
+rectangle "Frontend Web App\n(UI)" as fe
+
+database "Relational Database\n(PostgreSQL or similar)" as db
+
+' ===========================
+' Backend boundary
+' ===========================
+package "Backend API (Monolith)\nHTTP/REST + JSON" as be {
+
+  ' -------- API Layer --------
+  component "API Layer\n(Controllers / Route Handlers)" as api
+  component "DTO / Validation\n(Request/Response schemas)" as dto
+
+  ' -------- Cross-cutting --------
+  component "Auth Module\n(Authentication & Authorization)\n- login/register\n- token/session validation\n- role checks (user/admin)" as auth
+  component "Error Handling & Logging\n- unified error model\n- request tracing\n- audit logs (admin actions)" as obs
+
+  ' -------- Domain Services (Business logic) --------
+  component "User Management Service\n- profile\n- preferences\n- account settings" as usersvc
+
+  component "Movie Catalog Service\n- list/search/filter\n- movie details\n- admin CRUD for movies" as moviesvc
+
+  component "Interaction Service\n(User ↔ Movie)\n- ratings\n- reviews\n- favorites\n- watch history (optional)\n- aggregates (avg rating, counts)" as intersvc
+
+  component "Recommendation Engine\n- build user taste profile\n- generate ranked list\n- explainability (optional)\n- cold-start strategy" as receng
+
+  ' -------- Persistence / Data Access --------
+  component "Data Access Layer (DAL)\n(Repositories / Gateways)\n- isolates DB queries\n- transactions" as dal
+
+  ' -------- Domain model boundary (conceptual) --------
+  component "Domain Model\n(Entities / Value Objects)\nUser, Movie, Rating, Review, Favorite,\nComplaint (optional)" as domain
+
+  ' -------- Admin moderation (optional but aligns with requirements example) --------
+  component "Moderation / Complaints Service\n- create complaint\n- review/moderate content\n- admin resolution workflow" as modsvc
+}
+
+' ===========================
+' Relationships (strict, implementation-guiding)
+' ===========================
+
+' --- Frontend interactions ---
+user --> fe : browse / search / rate / review / favorite
+admin --> fe : manage catalog / moderate content
+
+fe --> api : HTTPS JSON requests\n(auth, catalog, interactions, recommendations)
+
+' --- API internal wiring ---
+api --> dto : validate & map DTOs
+api --> auth : authenticate request\n+ authorize by role
+api --> obs : report errors/log events
+
+' --- Domain service calls from API ---
+api --> usersvc : user endpoints
+api --> moviesvc : catalog endpoints
+api --> intersvc : ratings/reviews/favorites endpoints
+api --> receng : recommendations endpoints
+api --> modsvc : complaints/moderation endpoints (admin)
+
+' --- Service-to-service dependencies ---
+' Interaction produces the signals used by recommendations.
+intersvc --> receng : provide interaction signals\n(ratings, favorites, history)
+
+' In many designs, Recommendation reads user & movie context as well.
+receng --> usersvc : read user prefs (optional)
+receng --> moviesvc : read movie features / metadata (optional)
+
+' --- Persistence rules ---
+usersvc --> dal
+moviesvc --> dal
+intersvc --> dal
+receng --> dal
+modsvc --> dal
+
+dal --> db : SQL queries / transactions
+
+' --- Domain model usage ---
+usersvc ..> domain
+moviesvc ..> domain
+intersvc ..> domain
+receng ..> domain
+modsvc ..> domain
+dal ..> domain
+api ..> domain : maps to responses\n(read-only coupling)
+
+' ===========================
+' Notes / Constraints (important for later stages)
+' ===========================
+
+note right of api
+API Layer rules:
+- no direct DB access
+- minimal logic: validation, orchestration
+- returns stable contracts (JSON)
+end note
+
+note right of receng
+Recommendation Engine rules:
+- algorithm is isolated behind this component
+- must support:
+  1) cold-start (new user / no history)
+  2) fallback strategy when data is sparse
+- output: ranked list of Movie IDs + score
+end note
+
+note bottom of dal
+DAL rules:
+- only DAL talks to DB
+- services call DAL via repositories
+- keep transactions here
+end note
+
+note bottom of auth
+Auth rules:
+- consistent user identity available to all services
+- roles: USER, ADMIN
+- endpoints must declare required role
+end note
+
+@enduml
