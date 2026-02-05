@@ -22,9 +22,18 @@ public class Title {
     @Column(name = "title_id", nullable = false)
     private UUID titleId;
 
+    @Column(name = "tmdb_id", nullable = false)
+    private String tmdbId;
+
+    @Column(name = "title_name", nullable = false)
+    private String titleName;
+
+    @Column(name = "overview", columnDefinition = "text")
+    private String overview;
+
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "directors", columnDefinition = "text[]")
-    private List<String> directors;
+    @Column(name = "keywords", columnDefinition = "text[]")
+    private List<String> keywords;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
     @Column(name = "genres", columnDefinition = "text[]", nullable = false)
@@ -35,14 +44,8 @@ public class Title {
     private List<String> actors;
 
     @JdbcTypeCode(SqlTypes.ARRAY)
-    @Column(name = "regions", columnDefinition = "text[]")
-    private List<String> regions;
-
-    @Column(name = "title_name", nullable = false, columnDefinition = "varchar")
-    private String titleName;
-
-    @Column(name = "overview", columnDefinition = "text")
-    private String overview;
+    @Column(name = "director")
+    private List<String> director;
 
     @Column(name = "release_year")
     private short releaseYear;
@@ -50,6 +53,6 @@ public class Title {
     @Column(name = "rating")
     private byte rating;
 
-    @Column(name = "id_tmdb")
-    private int idTmdb;
+    @Column(name = "tmdb_image_url")
+    private String imageUrl;
 }
