@@ -1,6 +1,8 @@
 package org.ukma.spring.cinemovie.services;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.ukma.spring.cinemovie.dto.comment.CommentCreateDto;
 import org.ukma.spring.cinemovie.dto.comment.CommentResponseDto;
@@ -23,6 +25,7 @@ public class CommentService {
     private final CommentRepo commentRepo;
     private final UserRepo userRepo;
     private final TitleRepo titleRepo;
+    private final JavaMailSender mailSender;
 
     public UUID create(CommentCreateDto dto) {
         UUID userId = UUID.fromString(dto.userId());
@@ -116,5 +119,30 @@ public class CommentService {
         if (rating < 0 || rating > 10) {
             throw new IllegalArgumentException("Rating must be in range 0..10, but got: " + rating);
         }
+    }
+
+    public void sendCommentRemovalEmail(String recipient, String commentText) {
+        String subject = "Your comment has been removed";
+        String body = String.format("""
+                Hello,
+
+                Your comment has been removed by our moderation team for violating community guidelines.
+
+                Comment text:
+                "%s"
+
+                Please review our comment policy before posting again.
+
+                Sincerely,
+                UKMAcritic Moderation Team
+                """, commentText);
+
+        SimpleMailMessage msg = new SimpleMailMessage();
+        msg.setFrom("vasylshlapak14@gmail.com");
+        msg.setTo(recipient);
+        msg.setSubject(subject);
+        msg.setText(body);
+
+        mailSender.send(msg);
     }
 }
