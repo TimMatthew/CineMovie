@@ -72,9 +72,10 @@ public class UserService {
         return toResponseDto(user);
     }
 
-    public void delete(UUID userId) {
+    public boolean delete(UUID userId) {
         User user = getEntity(userId);
         userRepo.delete(user);
+        return true;
     }
 
     public User getEntity(UUID userId) {
