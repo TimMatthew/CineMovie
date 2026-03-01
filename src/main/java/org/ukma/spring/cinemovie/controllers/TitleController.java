@@ -9,7 +9,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("titles")
 @RequiredArgsConstructor
@@ -18,7 +17,7 @@ public class TitleController {
     private final TitleService titleService;
 
     @PostMapping
-    public UUID create(@RequestBody TitleUpsertDto title, @CookieValue(name="jwt") String token) {
+    public UUID create(@RequestBody TitleUpsertDto title) {
         return titleService.create(title);
     }
 
@@ -33,12 +32,12 @@ public class TitleController {
     }
 
     @PutMapping("{id}")
-    public TitleUpsertDto update(@PathVariable UUID id, @RequestBody TitleUpsertDto dto, @CookieValue(name="jwt") String jwtToken) {
+    public TitleUpsertDto update(@PathVariable UUID id, @RequestBody TitleUpsertDto dto) {
         return titleService.update(id, dto);
     }
 
     @DeleteMapping("{id}")
-    public boolean delete(@PathVariable UUID id, @CookieValue(name="jwt") String jwtToken) {
+    public boolean delete(@PathVariable UUID id) {
         return titleService.delete(id);
     }
 }

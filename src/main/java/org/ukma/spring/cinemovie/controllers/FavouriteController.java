@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-//@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("favs")
@@ -20,7 +19,7 @@ public class FavouriteController {
     private final FavouriteService fs;
 
     @PostMapping
-    public UUID create(@RequestBody FavCreateDto f, @CookieValue(name = "jwt") String token){
+    public UUID create(@RequestBody FavCreateDto f){
         return fs.create(f);
     }
 
@@ -30,7 +29,7 @@ public class FavouriteController {
     }
 
     @DeleteMapping("{id}")
-    public boolean delete(@PathVariable UUID id, @CookieValue(name = "jwt") String token){
+    public boolean delete(@PathVariable UUID id){
         return fs.delete(id);
     }
 

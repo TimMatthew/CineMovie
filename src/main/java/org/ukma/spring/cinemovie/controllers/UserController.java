@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RestController
 @RequestMapping("users")
 @RequiredArgsConstructor
@@ -20,38 +19,37 @@ public class UserController {
 
     private final UserService us;
 
-    @PostMapping("login")
-    public ResponseEntity<?> authenticate(@RequestBody UserAuthDto dto){
-
-
-
-        ResponseCookie cookie = ResponseCookie.from("jwt")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(60 * 60) // 1 hour
-                .sameSite("Lax")
-                .build();
-
-        return ResponseEntity
-                .ok()
-                .header("Set-Cookie", cookie.toString())
-                .body(Map.of());
-    }
-
-    @PostMapping("logout")
-    public ResponseEntity<?> logout() {
-        ResponseCookie cookie = ResponseCookie.from("jwt", "")
-                .httpOnly(true)
-                .secure(false)
-                .path("/")
-                .maxAge(0)
-                .build();
-
-        return ResponseEntity.ok()
-                .header("Set-Cookie", cookie.toString())
-                .body(Map.of("message", "Logged out"));
-    }
+//    @PostMapping("login")
+//    public ResponseEntity<?> authenticate(@RequestBody UserAuthDto dto){
+//
+//
+//        ResponseCookie cookie = ResponseCookie.from("jwt")
+//                .httpOnly(true)
+//                .secure(false)
+//                .path("/")
+//                .maxAge(60 * 60) // 1 hour
+//                .sameSite("Lax")
+//                .build();
+//
+//        return ResponseEntity
+//                .ok()
+//                .header("Set-Cookie", cookie.toString())
+//                .body(Map.of());
+//    }
+//
+//    @PostMapping("logout")
+//    public ResponseEntity<?> logout() {
+//        ResponseCookie cookie = ResponseCookie.from("jwt", "")
+//                .httpOnly(true)
+//                .secure(false)
+//                .path("/")
+//                .maxAge(0)
+//                .build();
+//
+//        return ResponseEntity.ok()
+//                .header("Set-Cookie", cookie.toString())
+//                .body(Map.of("message", "Logged out"));
+//    }
 
 
     @PostMapping()
@@ -69,12 +67,12 @@ public class UserController {
     }
 
     @PutMapping("{id}")
-    public UserResponseDto update(@PathVariable UUID id, @RequestBody UserUpdateDto dto, @CookieValue("jwt") String token){
+    public UserResponseDto update(@PathVariable UUID id, @RequestBody UserUpdateDto dto){
         return us.update(id, dto);
     }
 
     @DeleteMapping("{id}")
-    public boolean delete(@PathVariable UUID id, @CookieValue("jwt") String token){
+    public boolean delete(@PathVariable UUID id){
         return us.delete(id);
     }
 }

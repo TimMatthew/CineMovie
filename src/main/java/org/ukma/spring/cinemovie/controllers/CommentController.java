@@ -12,14 +12,13 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 @RequestMapping("comments")
 public class CommentController {
 
     private final CommentService cs;
 
     @PostMapping
-    public UUID create(@RequestBody CommentCreateDto title, @CookieValue(name="jwt") String jwtToken) {
+    public UUID create(@RequestBody CommentCreateDto title) {
         return cs.create(title);
     }
 
@@ -45,12 +44,12 @@ public class CommentController {
 
 
     @PutMapping("{id}")
-    public CommentResponseDto update(@PathVariable UUID id, @RequestBody CommentUpdateDto dto, @CookieValue(name="jwt") String jwtToken){
+    public CommentResponseDto update(@PathVariable UUID id, @RequestBody CommentUpdateDto dto){
         return cs.update(id, dto);
     }
 
-    @DeleteMapping("delete/{comment}/{manager}")
-    public boolean delete(@PathVariable UUID comment, @PathVariable UUID manager, @CookieValue(name="jwt") String jwtToken){
+    @DeleteMapping("{comment}")
+    public boolean delete(@PathVariable UUID comment){
         return cs.delete(comment);
     }
 }
