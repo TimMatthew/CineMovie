@@ -2,13 +2,11 @@ package org.ukma.spring.cinemovie.services;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.ukma.spring.cinemovie.dto.user.UserProfileDto;
-import org.ukma.spring.cinemovie.dto.user.UserRegisterDto;
-import org.ukma.spring.cinemovie.dto.user.UserResponseDto;
-import org.ukma.spring.cinemovie.dto.user.UserTestDto;
-import org.ukma.spring.cinemovie.dto.user.UserUpdateDto;
+import org.ukma.spring.cinemovie.dto.user.*;
 import org.ukma.spring.cinemovie.entities.User;
 import org.ukma.spring.cinemovie.repos.UserRepo;
+import org.ukma.spring.cinemovie.security.JWTUtils;
+import org.ukma.spring.cinemovie.security.PasswordUtils;
 
 import java.util.List;
 import java.util.UUID;
@@ -18,6 +16,18 @@ import java.util.UUID;
 public class UserService {
 
     private final UserRepo userRepo;
+    private final PasswordUtils pwdUtils;
+    private final JWTUtils jwt;
+
+    public UserResponseDto authenticate(UserAuthDto dto) {
+        User user = userRepo.findByLogin(dto.login())
+            .orElseThrow(() -> new IllegalArgumentException("User with login " + dto.login() + " not found"));
+
+        if (!pwdUtils.matchPassword(dto.password(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid password");
+        }
+        return toResponseDto(user);
+    }
 
     public UUID create(UserRegisterDto dto) {
         if (userRepo.existsByEmail(dto.email())) {
@@ -29,7 +39,7 @@ public class UserService {
 
         User user = User.builder()
             .email(dto.email())
-            .password(dto.password())
+            .password(pwdUtils.hash(dto.password()))
             .login(dto.login())
             .name(dto.name())
             .state(dto.state())
@@ -46,41 +56,51 @@ public class UserService {
     }
 
     public UserResponseDto get(UUID userId) {
-        return toResponseDto(getEntity(userId));
-    }
+        User user = userRepo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " is not found"));
 
-    public UserResponseDto update(UUID userId, UserUpdateDto dto) {
-        User user = getEntity(userId);
-
-        if (dto.login() != null && !dto.login().equals(user.getLogin())) {
-            userRepo.findByLogin(dto.login()).ifPresent(existing -> {
-                if (!existing.getUserId().equals(userId)) {
-                    throw new IllegalArgumentException("User with the following login already exists");
-                }
-            });
-            user.setLogin(dto.login());
-        }
-
-        if (dto.userName() != null) {
-            user.setName(dto.userName());
-        }
-        if (dto.password() != null) {
-            user.setPassword(dto.password());
-        }
-
-        userRepo.saveAndFlush(user);
         return toResponseDto(user);
-    }
-
-    public boolean delete(UUID userId) {
-        User user = getEntity(userId);
-        userRepo.delete(user);
-        return true;
     }
 
     public User getEntity(UUID userId) {
         return userRepo.findById(userId)
             .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " is not found"));
+    }
+
+    public UserResponseDto update(UUID userId, UserUpdateDto dto, String token) {
+        if(token == null)
+            throw new SecurityException("You must be authenticated (please log in into your account)!");
+
+        String authenticatedUserId = jwt.extractUserId(token);
+
+
+        var user = userRepo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " is not found"));
+        String id = String.valueOf(user.getUserId());
+
+        if(!id.equals(authenticatedUserId))
+            throw new SecurityException("You cannot modify another user's account");
+
+        user.setName(dto.userName());
+        user.setLogin(dto.login());
+        user.setPassword(dto.password());
+
+        userRepo.saveAndFlush(user);
+        return toResponseDto(user);
+    }
+
+    public boolean delete(UUID userId, String token) {
+        String roleFromToken = jwt.extractRole(token);
+        String authenticatedUserId = jwt.extractUserId(token);
+
+        User user = userRepo.findById(userId).orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " is not found"));
+        String id = String.valueOf(user.getUserId());
+        boolean isClient = roleFromToken.equals("false");
+        boolean idsAreEqual = id.equals(authenticatedUserId);
+
+        if(isClient && !idsAreEqual)
+            throw new SecurityException("You cannot delete another user's account");
+
+        userRepo.delete(user);
+        return true;
     }
 
     private UserResponseDto toResponseDto(User u) {
