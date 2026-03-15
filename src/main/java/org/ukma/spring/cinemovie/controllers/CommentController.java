@@ -1,9 +1,11 @@
 package org.ukma.spring.cinemovie.controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.ukma.spring.cinemovie.dto.comment.CommentCreateDto;
 import org.ukma.spring.cinemovie.dto.comment.CommentResponseDto;
 import org.ukma.spring.cinemovie.dto.comment.CommentUpdateDto;
+import org.ukma.spring.cinemovie.security.JwtAccessValidator;
 import org.ukma.spring.cinemovie.services.CommentService;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +18,7 @@ import java.util.UUID;
 public class CommentController {
 
     private final CommentService cs;
+    private final JwtAccessValidator jwtAccessValidator;
 
     @PostMapping
     public UUID create(@RequestBody CommentCreateDto title) {
@@ -49,7 +52,8 @@ public class CommentController {
     }
 
     @DeleteMapping("{comment}")
-    public boolean delete(@PathVariable UUID comment){
+    public boolean delete(@PathVariable UUID comment, HttpServletRequest request){
+        jwtAccessValidator.requireAdmin(request);
         return cs.delete(comment);
     }
 }
